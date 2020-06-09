@@ -1,6 +1,7 @@
 package com.MemberDomain.mapper;
 
-import com.MemberDomain.model.User;
+import com.MemberDomain.model.request.RegisterRequest;
+import com.MemberDomain.model.response.RegisterLoginResponse;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -10,82 +11,59 @@ import java.util.List;
 @Mapper
 public interface User_mapper {
 
-    final String register = "INSERT INTO tbl_users (id_user, name, email, phoneNumber, password, id_role, is_active)\n" +
-            "VALUES (#{name}, #{email}, #{phoneNumber}, #{password}, #{id_role}, #{is_active});";
+    final String registerUser = "INSERT INTO tbl_users (idUser, name, email, phoneNumber, password, idRole)\n" +
+            "VALUES (#{idUser}, #{name}, #{email}, #{phoneNumber}, #{password}, '2');";
 
-    final String login = "SELECT * from tbl_user WHERE phoneNumber = #{phoneNumber} AND password = #{password}";
-    final String getAll = "SELECT * FROM tbl_users";
-    final String getById = "SELECT * FROM tbl_users WHERE id_user = #{id_user}";
-    final String getByEmail = "SELECT * FROM tbl_users WHERE email = #{email}";
-    final String getByPhoneNumber = "SELECT * FROM tbl_users WHERE phoneNumber = #{phoneNumber}";
+    final String emailCheck = "SELECT * FROM tbl_users WHERE email = #{email}";
+    final String phoneCheck = "SELECT * FROM tbl_users WHERE phoneNumber = #{phoneNumber}";
 
-    final String update = "UPDATE tbl_users SET name = #{name}, email = #{email}, phoneNumber = #{phoneNumber}, \n" +
-            "password = #{password}, id_role = #{id_role}, is_active = #{is_active}, WHERE idUser = #{idUser};";
+    final String getAll = "SELECT tu.idUser, tu.name, tu.email, tu.phoneNumber, tb.balance, tu.idRole, tr.roleName\n" +
+            "FROM tbl_users AS tu, tbl_balances AS tb, tbl_roles AS tr\n" +
+            "WHERE tu.idUser = tb.idUser AND tu.idRole = tr.idRole\n" +
+            "ORDER BY tu.created_at ASC";
 
+    final String login = "SELECT * from tbl_users WHERE phoneNumber = #{phoneNumber} AND password = #{password}";
 
-    final String deleteById = "DELETE from tbl_user WHERE idUser = #{idUser}";
+    final String getUserProfile = "SELECT tu.idUser, tu.name, tu.email, tu.phoneNumber, tb.balance, tu.idRole, tr.roleName\n" +
+            "FROM tbl_users AS tu, tbl_balances AS tb, tbl_roles AS tr\n" +
+            "WHERE tu.idUser = tb.idUser AND tu.idRole = tr.idRole\n" +
+            "AND tu.idUser = #{idUser}";
 
-    final String updateToken = "UPDATE tbl_user SET token = #{token} WHERE idUser = #{idUser}";
-    final String updateUserBalance = "UPDATE tbl_user SET balance = #{newBalance} WHERE idUser = #{idUser}";
+    final String editProfile = "";
+    final String changePassword = "";
+    final String editProfilePro = "";
 
-    @Select(getAll)
-    List<User> getAll();
-
-    @Select(getById)
-    @Results(value = {
-            @Result(property = "idUser", column = "idUser"),
-            @Result(property = "name", column = "name"),
-            @Result(property = "email", column = "email"),
-            @Result(property = "password", column = "password"),
-            @Result(property = "phoneNumber", column = "phoneNumber"),
-            @Result(property = "balance", column = "balance"),
-            @Result(property = "token", column = "token")
-    })
-    User getById(long idUser);
-
-    @Select(getByPhoneNumber)
-    @Results(value = {
-            @Result(property = "idUser", column = "idUser"),
-            @Result(property = "name", column = "name"),
-            @Result(property = "email", column = "email"),
-            @Result(property = "password", column = "password"),
-            @Result(property = "phoneNumber", column = "phoneNumber"),
-            @Result(property = "balance", column = "balance"),
-            @Result(property = "token", column = "token")
-    })
-    User getByPhoneNumber(String phoneNumber);
-
-    @Select(login)
-    @Results(value = {
-            @Result(property = "idUser", column = "idUser"),
-            @Result(property = "name", column = "name"),
-            @Result(property = "email", column = "email"),
-            @Result(property = "password", column = "password"),
-            @Result(property = "phoneNumber", column = "phoneNumber"),
-            @Result(property = "balance", column = "balance"),
-            @Result(property = "token", column = "token")
-    })
-    User login(User user);
+    @Insert(registerUser)
+    void registerUser(RegisterRequest register);
 
     @Select(emailCheck)
-    User emailCheck(User user);
+    RegisterLoginResponse emailCheck(String email);
 
     @Select(phoneCheck)
-    User phoneCheck(User user);
+    RegisterLoginResponse phoneCheck(String phoneNumber);
 
-    @Update(update)
-    void update(User user);
+    @Select(login)
+    RegisterLoginResponse login(String phoneNumber, String password);
 
-    @Update(updateToken)
-    void updateToken(long idUser, int token);
+    @Select(getUserProfile)
+    @Results(value = {
+            @Result(property = "idUser", column = "idUser"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "phoneNumber", column = "phoneNumber"),
+            @Result(property = "balance", column = "balance"),
+            @Result(property = "idRole", column = "idRole"),
+            @Result(property = "roleName", column = "roleName")
+    })
+    RegisterLoginResponse getUserProfile(String idUser);
 
-    @Update(updateUserBalance)
-    void updateUserBalance(long idUser, float newBalance);
-
-    @Delete(deleteById)
-    void delete(long idUser);
-
-    @Insert(insert)
-    @Options(useGeneratedKeys = true, keyProperty = "idUser")
-    void insert(User user);
+    @Select(getAll)
+    @Results(value = {
+            @Result(property = "idUser", column = "idUser"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "email", column = "name"),
+            @Result(property = "phoneNumber", column = "phoneNumber"),
+            @Result(property = "idRole", column = "idRole")
+    })
+    List<RegisterLoginResponse> getAll();
 }
