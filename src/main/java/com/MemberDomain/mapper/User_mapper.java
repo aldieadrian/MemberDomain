@@ -1,6 +1,7 @@
 package com.MemberDomain.mapper;
 
 import com.MemberDomain.model.request.RegisterRequest;
+import com.MemberDomain.model.response.ProfileResponse;
 import com.MemberDomain.model.response.RegisterLoginResponse;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -24,10 +25,12 @@ public interface User_mapper {
 
     final String login = "SELECT * from tbl_users WHERE phoneNumber = #{phoneNumber} AND password = #{password}";
 
-    final String getUserProfile = "SELECT tu.idUser, tu.name, tu.email, tu.phoneNumber, tb.balance, tu.idRole, tr.roleName\n" +
+    final String getUserData = "SELECT tu.idUser, tu.name, tu.email, tu.phoneNumber, tb.balance, tu.idRole, tr.roleName\n" +
             "FROM tbl_users AS tu, tbl_balances AS tb, tbl_roles AS tr\n" +
             "WHERE tu.idUser = tb.idUser AND tu.idRole = tr.idRole\n" +
             "AND tu.idUser = #{idUser}";
+
+    final String getUserProfile = "SELECT * FROM tbl_users WHERE idUser = #{idUser}";
 
     final String editProfile = "";
     final String changePassword = "";
@@ -45,7 +48,7 @@ public interface User_mapper {
     @Select(login)
     RegisterLoginResponse login(String phoneNumber, String password);
 
-    @Select(getUserProfile)
+    @Select(getUserData)
     @Results(value = {
             @Result(property = "idUser", column = "idUser"),
             @Result(property = "name", column = "name"),
@@ -55,7 +58,19 @@ public interface User_mapper {
             @Result(property = "idRole", column = "idRole"),
             @Result(property = "roleName", column = "roleName")
     })
-    RegisterLoginResponse getUserProfile(String idUser);
+    RegisterLoginResponse getUserData(String idUser);
+
+    @Select(getUserProfile)
+    @Results(value = {
+            @Result(property = "idUser", column = "idUser"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "phoneNumber", column = "phoneNumber")
+    })
+    ProfileResponse getUserProfile(String idUser);
+
+    @Select(phoneCheck)
+    ProfileResponse phoneOTPCheck(String phoneNumber);
 
     @Select(getAll)
     @Results(value = {
