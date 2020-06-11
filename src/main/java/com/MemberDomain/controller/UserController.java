@@ -1,12 +1,13 @@
 package com.MemberDomain.controller;
 
-import com.MemberDomain.mapper.Balance_mapper;
-import com.MemberDomain.mapper.OTP_mapper;
-import com.MemberDomain.mapper.User_mapper;
+import com.MemberDomain.usecase.port.Balance_mapper;
+import com.MemberDomain.usecase.port.OTP_mapper;
+import com.MemberDomain.usecase.port.UserMapper;
 import com.MemberDomain.model.request.*;
 import com.MemberDomain.model.response.OTPResponse;
 import com.MemberDomain.model.response.ProfileResponse;
 import com.MemberDomain.model.response.RegisterLoginResponse;
+import com.MemberDomain.usecase.transaction.Register;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,14 +15,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api")
 public class UserController {
 
     @Autowired
-    private User_mapper userMapper;
+    private Register register;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Autowired
     private Balance_mapper balanceMapper;
@@ -49,53 +52,62 @@ public class UserController {
         }
     }
 
-    // insert user
+    //insert user
     @PostMapping("/auth/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest register) {
-        RegisterLoginResponse checkEmail = userMapper.emailCheck(register.getEmail());
-        RegisterLoginResponse checkPhone = userMapper.phoneCheck(register.getPhoneNumber());
-        if (register.getName().isEmpty() || register.getEmail().isEmpty() || register.getPhoneNumber().isEmpty() || register.getPassword().isEmpty() || register.getConfirmPassword().isEmpty()){
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("Message", "Please fill in all the forms!");
-            jsonObject.put("Code", "002");
-            jsonObject.put("Http Status", "400");
-            return new ResponseEntity<>(jsonObject, HttpStatus.BAD_REQUEST);
-        }
-        else if (register.getPassword() != register.getConfirmPassword()){
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("Message", "Password is missed-match.");
-            jsonObject.put("Code", "009");
-            jsonObject.put("Http Status", "400");
-            return new ResponseEntity<>(jsonObject, HttpStatus.BAD_REQUEST);
-        }
-        else if (checkEmail != null) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("Message", "Email already exists.");
-            jsonObject.put("Code", "007");
-            jsonObject.put("Http Status", "400");
-            return new ResponseEntity<>(jsonObject, HttpStatus.BAD_REQUEST);
-        }
-        else if(checkPhone != null){
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("Message", "Phone number already exists.");
-            jsonObject.put("Code", "008");
-            jsonObject.put("Http Status", "400");
-            return new ResponseEntity<>(jsonObject, HttpStatus.BAD_REQUEST);
-        }
-        else{
-            String uuidUser = UUID.randomUUID().toString();
-            register.setIdUser(uuidUser);
-            userMapper.registerUser(register);
-            balanceMapper.registerBalance(register.getIdUser());
-            RegisterLoginResponse registered = userMapper.getUserData(register.getIdUser());
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("Code", "001");
-            jsonObject.put("Data", registered);
-            jsonObject.put("Message", "Registration is successful.");
-            jsonObject.put("Status", "201");
-            return new ResponseEntity<>(jsonObject, HttpStatus.CREATED);
-        }
+    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
+        JSONObject result = register.createAccount(registerRequest);
+        return new ResponseEntity<>("jsonObject", HttpStatus.CREATED);
     }
+
+    // insert user
+//    @PostMapping("/auth/register")
+//    public ResponseEntity<?> register(@RequestBody RegisterRequest register) {
+//        RegisterLoginResponse checkEmail = userMapper.emailCheck(register.getEmail());
+//        RegisterLoginResponse checkPhone = userMapper.phoneCheck(register.getPhoneNumber());
+//        if (register.getName().isEmpty() || register.getEmail().isEmpty() ||
+//                register.getPhoneNumber().isEmpty() || register.getPassword().isEmpty() ||
+//                register.getConfirmPassword().isEmpty()){
+//            JSONObject jsonObject = new JSONObject();
+//            jsonObject.put("Message", "Please fill in all the forms!");
+//            jsonObject.put("Code", "002");
+//            jsonObject.put("Http Status", "400");
+//            return new ResponseEntity<>(jsonObject, HttpStatus.BAD_REQUEST);
+//        }
+//        else if (!register.getPassword().equals(register.getConfirmPassword())){
+//            JSONObject jsonObject = new JSONObject();
+//            jsonObject.put("Message", "Password is missed-match.");
+//            jsonObject.put("Code", "009");
+//            jsonObject.put("Http Status", "400");
+//            return new ResponseEntity<>(jsonObject, HttpStatus.BAD_REQUEST);
+//        }
+//        else if (checkEmail != null) {
+//            JSONObject jsonObject = new JSONObject();
+//            jsonObject.put("Message", "Email already exists.");
+//            jsonObject.put("Code", "007");
+//            jsonObject.put("Http Status", "400");
+//            return new ResponseEntity<>(jsonObject, HttpStatus.BAD_REQUEST);
+//        }
+//        else if(checkPhone != null){
+//            JSONObject jsonObject = new JSONObject();
+//            jsonObject.put("Message", "Phone number already exists.");
+//            jsonObject.put("Code", "008");
+//            jsonObject.put("Http Status", "400");
+//            return new ResponseEntity<>(jsonObject, HttpStatus.BAD_REQUEST);
+//        }
+//        else{
+//            String uuidUser = UUID.randomUUID().toString();
+//            register.setIdUser(uuidUser);
+//            userMapper.registerUser(register);
+//            balanceMapper.registerBalance(register.getIdUser());
+//            RegisterLoginResponse registered = userMapper.getUserData(register.getIdUser());
+//            JSONObject jsonObject = new JSONObject();
+//            jsonObject.put("Code", "001");
+//            jsonObject.put("Data", registered);
+//            jsonObject.put("Message", "Registration is successful.");
+//            jsonObject.put("Status", "201");
+//            return new ResponseEntity<>(jsonObject, HttpStatus.CREATED);
+//        }
+//    }
 
     // insert user
     @PostMapping("/auth/login")
@@ -148,7 +160,7 @@ public class UserController {
 
     // request otp
     @PostMapping("/auth/request-otp")
-    public ResponseEntity<?> requestOTP(@RequestBody OTPRequest otp){
+    public ResponseEntity<?> requestOTP(@RequestBody OtpRequest otp){
         ProfileResponse phoneCheck = userMapper.phoneOTPCheck(otp.getPhoneNumber());
         if (phoneCheck == null) {
             JSONObject jsonObject = new JSONObject();
@@ -182,7 +194,7 @@ public class UserController {
 
     // match otp
     @PostMapping("/auth/{idUser}/match-otp")
-    public ResponseEntity<?> matchOTP(@PathVariable String idUser, @RequestBody MatchOTPRequest otp){
+    public ResponseEntity<?> matchOTP(@PathVariable String idUser, @RequestBody MatchOtpRequest otp){
         ProfileResponse userCheck = userMapper.getUserProfile(idUser);
         if (userCheck == null) {
             JSONObject jsonObject = new JSONObject();
@@ -223,6 +235,12 @@ public class UserController {
     // forgot password
     @PostMapping("/auth/{idUser}/forgot-password")
     public ResponseEntity<?> forgotPassword(@PathVariable String idUser, @RequestBody ForgotPasswordRequest forgot){
+        if(!forgot.getPassword().equals(forgot.getConfirmPassword())){
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("message", "Password is missed match.");
+            jsonObject.put("status", "404");
+            return new ResponseEntity<>(jsonObject, HttpStatus.NOT_FOUND);
+        }
         ProfileResponse selectedUser = userMapper.getUserProfile(idUser);
         if (selectedUser == null) {
             JSONObject jsonObject = new JSONObject();
@@ -231,6 +249,7 @@ public class UserController {
             return new ResponseEntity<>(jsonObject, HttpStatus.NOT_FOUND);
         }
         else{
+            userMapper.changePassword(forgot.getPassword(), idUser);
             JSONObject jsonObject = new JSONObject();
             JSONObject empty = new JSONObject();
             jsonObject.put("data", empty);

@@ -1,4 +1,4 @@
-package com.MemberDomain.mapper;
+package com.MemberDomain.usecase.port;
 
 import com.MemberDomain.model.response.OTPResponse;
 import com.MemberDomain.model.response.ProfileResponse;
@@ -16,7 +16,7 @@ public interface OTP_mapper {
 
     final String checkOTP = "SELECT * FROM tbl_otps WHERE idUser =  #{idUser};";
 
-    final String updateOTP = "UPDATE tbl_otps SET date = NOW() + INTERVAL 1 MINUTE, WHERE idUser = #{idUser}";
+    final String updateOTP = "UPDATE tbl_otps SET date = NOW() + INTERVAL 1 MINUTE WHERE idUser = #{idUser}";
 
     final String matchOTP = "SELECT * FROM tbl_otps WHERE idUser =  #{idUser} AND otp = #{otp};";
 

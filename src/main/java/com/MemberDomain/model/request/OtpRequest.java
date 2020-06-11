@@ -1,12 +1,12 @@
 package com.MemberDomain.model.request;
 
-public class OTPRequest {
+public class OtpRequest {
     private String phoneNumber;
 
-    public OTPRequest() {
+    public OtpRequest() {
     }
 
-    public OTPRequest(String phoneNumber) {
+    public OtpRequest(String phoneNumber) {
         super();
         this.phoneNumber = phoneNumber;
     }

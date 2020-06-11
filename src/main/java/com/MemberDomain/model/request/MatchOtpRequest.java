@@ -1,12 +1,12 @@
 package com.MemberDomain.model.request;
 
-public class MatchOTPRequest {
+public class MatchOtpRequest {
     private String otp;
 
-    public MatchOTPRequest() {
+    public MatchOtpRequest() {
     }
 
-    public MatchOTPRequest(String otp) {
+    public MatchOtpRequest(String otp) {
         super();
         this.otp = otp;
     }

@@ -1,4 +1,4 @@
-package com.MemberDomain.mapper;
+package com.MemberDomain.usecase.port;
 
 import com.MemberDomain.model.request.RegisterRequest;
 import com.MemberDomain.model.response.ProfileResponse;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 @Mapper
-public interface User_mapper {
+public interface UserMapper {
 
     final String registerUser = "INSERT INTO tbl_users (idUser, name, email, phoneNumber, password, idRole)\n" +
             "VALUES (#{idUser}, #{name}, #{email}, #{phoneNumber}, #{password}, '2');";
@@ -33,7 +33,7 @@ public interface User_mapper {
     final String getUserProfile = "SELECT * FROM tbl_users WHERE idUser = #{idUser}";
 
     final String editProfile = "";
-    final String changePassword = "";
+    final String changePassword = "UPDATE tbl_users SET password = #{password} WHERE idUser = #{idUser}";
     final String editProfilePro = "";
 
     @Insert(registerUser)
@@ -71,6 +71,9 @@ public interface User_mapper {
 
     @Select(phoneCheck)
     ProfileResponse phoneOTPCheck(String phoneNumber);
+
+    @Update(changePassword)
+    void changePassword(String password, String idUser);
 
     @Select(getAll)
     @Results(value = {

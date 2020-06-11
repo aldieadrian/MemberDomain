@@ -1,4 +1,4 @@
-package com.MemberDomain.mapper;
+package com.MemberDomain.usecase.port;
 
 import com.MemberDomain.model.request.RegisterRequest;
 import com.MemberDomain.model.response.RegisterLoginResponse;
